@@ -1,0 +1,135 @@
+name: Deploy to Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., 1.0.0)'
+        required: true
+      confirm:
+        description: 'Type "deploy" to confirm prod deployment'
+        required: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Validate confirmation
+      run: |
+        if [[ "${{ github.event.inputs.confirm }}" != "deploy" ]]; then
+          echo "❌ Deployment cancelled. You must type 'deploy' to confirm."
+          exit 1
+        fi
+        echo "✅ Confirmation validated"
+
+    - name: Validate version format
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        if [[ $VERSION == *"SNAPSHOT"* ]]; then
+          echo "❌ Invalid version: $VERSION"
+          echo "Maven Central Portal does NOT support SNAPSHOT versions."
+          echo "Please use a release version (e.g., 1.0.0) or a qualifier (e.g., 1.0.0-RC1)."
+          exit 1
+        fi
+        if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+          echo "❌ Invalid version format: $VERSION"
+          echo "Version must follow semantic versioning (e.g., 1.0.0 or 1.0.0-RC1)"
+          exit 1
+        fi
+        echo "✅ Version format validated: $VERSION"
+
+  deploy-prod:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+      url: https://central.sonatype.com/artifact/dev.gmky/gmk-spring-utils/${{ github.event.inputs.version }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+        server-id: central
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_PASSWORD
+        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+        gpg-passphrase: GPG_PASSPHRASE
+
+    - name: Verify GPG Key
+      run: |
+        echo "Listing available secret keys to verify import:"
+        gpg --list-secret-keys --keyid-format=long
+      
+    - name: Update version to ${{ github.event.inputs.version }}
+      run: |
+        mvn versions:set -DnewVersion=${{ github.event.inputs.version }} -DgenerateBackupPoms=false
+        echo "Updated version to: ${{ github.event.inputs.version }}"
+
+    - name: Build project
+      run: mvn -B clean verify -P release
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+    - name: Deploy to Maven Central (Prod)
+      run: mvn -B deploy -P release -DskipTests
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+    - name: Create Git tag
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag -a "v${{ github.event.inputs.version }}" -m "Release version ${{ github.event.inputs.version }}"
+        git push origin "v${{ github.event.inputs.version }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload prod artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: prod-release-${{ github.event.inputs.version }}
+        path: |
+          target/*.jar
+          pom.xml
+        retention-days: 90
+
+    - name: Create deployment summary
+      run: |
+        echo "## 🎉 Prod Deployment Successful" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Deployment Details" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment**: Prod" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deployed by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit SHA**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Published Artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "- Main JAR: \`gmk-spring-utils-${{ github.event.inputs.version }}.jar\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Sources JAR: \`gmk-spring-utils-${{ github.event.inputs.version }}-sources.jar\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Javadoc JAR: \`gmk-spring-utils-${{ github.event.inputs.version }}-javadoc.jar\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "1. Verify the release on [Maven Central](https://central.sonatype.com/artifact/dev.gmky/gmk-spring-utils/${{ github.event.inputs.version }})" >> $GITHUB_STEP_SUMMARY
+        echo "2. Update release notes on GitHub" >> $GITHUB_STEP_SUMMARY
+        echo "3. Announce the release to users" >> $GITHUB_STEP_SUMMARY
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "## ❌ Prod Deployment Failed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "The deployment to prod failed. Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Version**: ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Actor**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY

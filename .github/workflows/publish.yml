@@ -1,0 +1,98 @@
+name: Publish to Maven Central
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+          - staging
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'prod' }}
+      url: https://central.sonatype.com/artifact/dev.gmky/gmk-spring-utils
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+        server-id: central
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_PASSWORD
+        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+        gpg-passphrase: GPG_PASSPHRASE
+    
+    - name: Verify GPG Key
+      run: |
+        echo "Listing available secret keys to verify import:"
+        gpg --list-secret-keys --keyid-format=long
+
+    - name: Set environment variables
+      run: |
+        if [[ "${{ github.event.inputs.environment }}" == "staging" ]]; then
+          echo "DEPLOY_REPO=staging" >> $GITHUB_ENV
+        else
+          echo "DEPLOY_REPO=prod" >> $GITHUB_ENV
+        fi
+
+    - name: Update version in pom.xml
+      run: |
+        VERSION="${GITHUB_REF#refs/tags/v}"
+        if [ -z "$VERSION" ] || [ "$VERSION" == "$GITHUB_REF" ]; then
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        fi
+        # Strip -SNAPSHOT if present (Central Portal does not support snapshots)
+        VERSION=${VERSION//-SNAPSHOT/}
+        
+        mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
+        echo "Building version: $VERSION"
+
+    - name: Build and verify
+      run: mvn -B clean verify -P release
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+    - name: Publish to Maven Central
+      run: mvn -B deploy -P release -DskipTests
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: maven-artifacts-${{ github.event.inputs.environment || 'prod' }}
+        path: target/*.jar
+        retention-days: 30
+
+    - name: Create deployment summary
+      run: |
+        echo "## Deployment Summary 🚀" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment**: ${{ github.event.inputs.environment || 'prod' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Actor**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Artifacts Published" >> $GITHUB_STEP_SUMMARY
+        echo "- JAR file" >> $GITHUB_STEP_SUMMARY
+        echo "- Sources JAR" >> $GITHUB_STEP_SUMMARY
+        echo "- Javadoc JAR" >> $GITHUB_STEP_SUMMARY
