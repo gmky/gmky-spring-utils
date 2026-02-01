@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: prod
-      url: https://central.sonatype.com/artifact/dev.gmky/gmk-spring-utils/${{ github.event.inputs.version }}
+      url: https://central.sonatype.com/artifact/dev.gmky/gmky-spring-utils/${{ github.event.inputs.version }}
     
     steps:
     - name: Checkout code
@@ -115,12 +115,12 @@ jobs:
         echo "- **Timestamp**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Published Artifacts" >> $GITHUB_STEP_SUMMARY
-        echo "- Main JAR: \`gmk-spring-utils-${{ github.event.inputs.version }}.jar\`" >> $GITHUB_STEP_SUMMARY
-        echo "- Sources JAR: \`gmk-spring-utils-${{ github.event.inputs.version }}-sources.jar\`" >> $GITHUB_STEP_SUMMARY
-        echo "- Javadoc JAR: \`gmk-spring-utils-${{ github.event.inputs.version }}-javadoc.jar\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Main JAR: \`gmky-spring-utils-${{ github.event.inputs.version }}.jar\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Sources JAR: \`gmky-spring-utils-${{ github.event.inputs.version }}-sources.jar\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Javadoc JAR: \`gmky-spring-utils-${{ github.event.inputs.version }}-javadoc.jar\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-        echo "1. Verify the release on [Maven Central](https://central.sonatype.com/artifact/dev.gmky/gmk-spring-utils/${{ github.event.inputs.version }})" >> $GITHUB_STEP_SUMMARY
+        echo "1. Verify the release on [Maven Central](https://central.sonatype.com/artifact/dev.gmky/gmky-spring-utils/${{ github.event.inputs.version }})" >> $GITHUB_STEP_SUMMARY
         echo "2. Update release notes on GitHub" >> $GITHUB_STEP_SUMMARY
         echo "3. Announce the release to users" >> $GITHUB_STEP_SUMMARY
 
