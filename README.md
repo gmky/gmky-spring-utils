@@ -26,7 +26,44 @@ public void processPayment() {
 #### `AppReadyLogging`
 Automatically logs application access URLs (Local, External, Swagger) when the application starts.
 
+### 3. Common Utilities (`dev.gmky.utils.common`)
 
+#### `DateUtil`
+
+Helper for generic date formatting.
+
+- `formatDate(Date date, String pattern)`: Formats a date using system default timezone.
+
+#### `ResponseUtil`
+
+Standardized API response builder.
+
+- `data(T data)`: Success response with body.
+- `data(Page<T> page)`: Success response with pagination headers (`Link`, `X-TOTAL-COUNT`).
+- `ok()`, `created()`, `noContent()`: Standard status responses.
+
+#### `RequestUtil`
+
+Access current HTTP request details statically.
+
+- `getHeader(String name)`: Retrieve header value from current context.
+
+#### `AppContextUtil`
+
+Static access to Spring Beans.
+
+- `getBean(Class<T> clazz)`: Retrieve bean by class.
+- `getProperty(String key)`: Retrieve environment property.
+
+### 4. Mappers (`dev.gmky.utils.mapper`)
+
+#### `EntityMapper<D, E>`
+
+Base MapStruct interface for Entity-DTO conversion.
+
+- `toDto(E entity)`
+- `toEntity(D dto)`
+- `partialUpdate(D dto, E entity)`
 
 ## Installation
 
@@ -35,15 +72,15 @@ Automatically logs application access URLs (Local, External, Swagger) when the a
 ```xml
 <dependency>
     <groupId>dev.gmky</groupId>
-    <artifactId>gmk-spring-utils</artifactId>
-    <version>0.0.1</version>
+    <artifactId>gmky-spring-utils</artifactId>
+    <version>0.0.2</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'dev.gmky:gmk-spring-utils:0.0.1'
+implementation 'dev.gmky:gmky-spring-utils:0.0.2'
 ```
 
 ## Requirements
