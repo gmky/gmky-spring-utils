@@ -26,7 +26,9 @@ class RequestUtilTest {
     @Test
     void getHeader_ShouldReturnNull_WhenRequestIsNotPresent() {
         RequestContextHolder.resetRequestAttributes();
-
+        // Explicitly set null to ensure we test the null attribute branch
+        RequestContextHolder.setRequestAttributes(null);
+        
         String headerValue = RequestUtil.getHeader("Test-Header");
 
         assertNull(headerValue);

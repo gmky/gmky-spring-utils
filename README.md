@@ -14,12 +14,15 @@ This library provides common utilities and helper classes for Spring Boot applic
 Measures and logs method execution time.
 
 ```java
-@ExecutionTime(name = "Payment", key = "tx-123")
-public void processPayment() {
+
+@ExecutionTime(name = "Payment", key = "#order.id")
+public void processPayment(Order order) {
     // ...
 }
-// Logs: Method [Payment] - [tx-123] executed in 150 ms
+// Logs: Method [Payment] - [123] executed in 150 ms
 ```
+
+*(Supports SpEL for `key` evaluation)*
 
 ### 2. Startup Utilities (`dev.gmky.utils.startup`)
 

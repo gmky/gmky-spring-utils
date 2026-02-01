@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -71,6 +72,42 @@ class ResponseUtilTest {
         assertTrue(link.contains("rel=\"last\""));
         assertTrue(link.contains("rel=\"first\""));
 
+        RequestContextHolder.resetRequestAttributes();
+    }
+
+    @Test
+    void generatePaginationHeader_ShouldHandleMiddlePage() {
+        // Setup mock request
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/api/resource");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        // Middle page: total 3 pages (0, 1, 2), current 1
+        List<String> content = Arrays.asList("item");
+        Page<String> page = new PageImpl<>(content, PageRequest.of(1, 10), 30);
+
+        HttpHeaders headers = ResponseUtil.generatePaginationHeader(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+
+        String link = headers.getFirst("Link");
+        assertNotNull(link);
+        assertTrue(link.contains("rel=\"first\""));
+        assertTrue(link.contains("rel=\"last\""));
+        assertTrue(link.contains("rel=\"next\""));
+        assertTrue(link.contains("rel=\"prev\""));
+
+        RequestContextHolder.resetRequestAttributes();
+    }
+
+    @Test
+    void generatePaginationHeader_ShouldReturnEmptyHeaders_WhenPageIsNull() {
+        // Setup mock request because fromCurrentRequest() needs it
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/api/resource");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        HttpHeaders headers = ResponseUtil.generatePaginationHeader(ServletUriComponentsBuilder.fromCurrentRequest(), null);
+        assertTrue(headers.isEmpty());
+        
         RequestContextHolder.resetRequestAttributes();
     }
 }

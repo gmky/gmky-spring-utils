@@ -8,6 +8,13 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.StopWatch;
 
 import java.lang.reflect.Method;
@@ -52,7 +59,11 @@ import java.lang.reflect.Method;
 @Aspect
 @ConditionalOnMissingBean(ExecutionTimeAspect.class)
 public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
-    
+
+    // SpEL Parser
+    private final ExpressionParser parser = new SpelExpressionParser();
+    private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
+
     /**
      * Around advice that measures and logs method execution time.
      * <p>
@@ -75,7 +86,7 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
         if (log.isDebugEnabled()) {
             var annotation = getAnnotation(joinPoint);
             var name = getName(joinPoint, annotation);
-            var key = getKey(annotation);
+            var key = getKey(joinPoint, annotation);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             try {
@@ -93,17 +104,51 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
     }
 
     /**
-     * Extracts the key from the {@link ExecutionTime} annotation.
+     * Extracts the key from the {@link ExecutionTime} annotation, supporting SpEL expressions.
      * <p>
-     * The key provides additional context for the log message, such as
-     * transaction IDs or request identifiers.
+     * The key is evaluated against the method arguments.
      * </p>
      *
+     * @param joinPoint the proceeding join point
      * @param annotation the ExecutionTime annotation instance
-     * @return the key value from the annotation, or empty string if not specified
+     * @return the evaluated key value
      */
-    private static String getKey(ExecutionTime annotation) {
-        return annotation.key();
+    private String getKey(ProceedingJoinPoint joinPoint, ExecutionTime annotation) {
+        String keyExpression = annotation.key();
+        if (StringUtils.isBlank(keyExpression)) {
+            return "";
+        }
+
+        try {
+            MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+            Method method = methodSignature.getMethod();
+            Object[] args = joinPoint.getArgs();
+
+            EvaluationContext context = new StandardEvaluationContext();
+            String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
+
+            if (paramNames != null) {
+                for (int i = 0; i < paramNames.length; i++) {
+                    context.setVariable(paramNames[i], args[i]);
+                }
+            }
+
+            // Also support #a0, #p0 style arguments
+            for (int i = 0; i < args.length; i++) {
+                context.setVariable("a" + i, args[i]);
+                context.setVariable("p" + i, args[i]);
+            }
+
+            Expression expression = parser.parseExpression(keyExpression);
+            Object value = expression.getValue(context);
+            return value != null ? value.toString() : "";
+        } catch (Exception e) {
+            // Fallback to raw string if evaluation fails (e.g., it's a literal string not an expression)
+            // Ideally we check if it looks like an expression, but SpEL can parse literals too.
+            // If it fails, log warning or just return raw.
+            log.trace("SpEL evaluation failed for key [{}], using raw value", keyExpression, e);
+            return keyExpression;
+        }
     }
 
     /**
@@ -119,7 +164,13 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
      * @return the name to use in log messages
      */
     private static String getName(ProceedingJoinPoint joinPoint, ExecutionTime annotation) {
-        return StringUtils.isNotBlank(annotation.value()) ? annotation.value() : joinPoint.getSignature().getName();
+        if (StringUtils.isNotBlank(annotation.value())) {
+            return annotation.value();
+        }
+        if (StringUtils.isNotBlank(annotation.name())) {
+            return annotation.name();
+        }
+        return joinPoint.getSignature().getName();
     }
 
     /**

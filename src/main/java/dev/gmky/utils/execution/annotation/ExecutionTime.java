@@ -24,11 +24,15 @@ import java.lang.annotation.*;
  *     // method implementation
  * }
  *
- * @ExecutionTime(name = "Payment Processing", key = "order-123")
+ * @ExecutionTime(name = "Payment Processing", key = "#order.id")
  * public void processPayment(Order order) {
  *     // method implementation
  * }
  * }</pre>
+ * <p>
+ * The {@code key} attribute supports Spring Expression Language (SpEL). You can access method arguments
+ * using the {@code #argName} or {@code #p0}, {@code #a0} syntax.
+ * </p>
  *
  * @author HiepVH
  * @since 1.0.0
