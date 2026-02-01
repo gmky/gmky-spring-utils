@@ -76,14 +76,14 @@ Base MapStruct interface for Entity-DTO conversion.
 <dependency>
     <groupId>dev.gmky</groupId>
     <artifactId>gmky-spring-utils</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'dev.gmky:gmky-spring-utils:0.0.3'
+implementation 'dev.gmky:gmky-spring-utils:0.0.4'
 ```
 
 ## Requirements

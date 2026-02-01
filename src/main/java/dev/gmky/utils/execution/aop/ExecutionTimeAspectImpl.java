@@ -15,6 +15,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 import java.lang.reflect.Method;
@@ -57,6 +58,7 @@ import java.lang.reflect.Method;
  */
 @Slf4j
 @Aspect
+@Component
 @ConditionalOnMissingBean(ExecutionTimeAspect.class)
 public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
 

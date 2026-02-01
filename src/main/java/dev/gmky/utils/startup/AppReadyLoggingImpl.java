@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -29,6 +30,7 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Slf4j
+@Component
 @RequiredArgsConstructor
 @ConditionalOnMissingBean(AppReadyLogging.class)
 public class AppReadyLoggingImpl implements AppReadyLogging {
