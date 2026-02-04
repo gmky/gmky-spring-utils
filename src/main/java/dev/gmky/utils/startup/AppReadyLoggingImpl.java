@@ -3,7 +3,6 @@ package dev.gmky.utils.startup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +31,6 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnMissingBean(AppReadyLogging.class)
 public class AppReadyLoggingImpl implements AppReadyLogging {
     private final Environment env;
 

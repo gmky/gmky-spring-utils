@@ -5,9 +5,9 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
@@ -59,7 +59,6 @@ import java.lang.reflect.Method;
 @Slf4j
 @Aspect
 @Component
-@ConditionalOnMissingBean(ExecutionTimeAspect.class)
 public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
 
     // SpEL Parser
@@ -84,6 +83,7 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
      * @throws Throwable if the intercepted method throws an exception
      */
     @Override
+    @Around("@annotation(dev.gmky.utils.execution.annotation.ExecutionTime)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (log.isDebugEnabled()) {
             var annotation = getAnnotation(joinPoint);
