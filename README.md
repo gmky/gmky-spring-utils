@@ -24,12 +24,32 @@ public void processPayment(Order order) {
 
 *(Supports SpEL for `key` evaluation)*
 
-### 2. Startup Utilities (`dev.gmky.utils.startup`)
+### 2. Logging Utilities (`dev.gmky.utils.logging`)
+
+#### `@LogPrefix`
+
+Adds a custom prefix to all log messages within the annotated method's scope. This is particularly useful for request
+tracing and log aggregation.
+
+```java
+
+@LogPrefix("'REQ-' + #userId")
+public void process(String userId) {
+    log.info("Processing data");
+    // Output: ... [REQ-123] : Processing data
+}
+```
+
+- **SpEL Support**: Evaluates the prefix dynamically using Spring Expression Language.
+- **MDC Integration**: Automatically manages `logPrefix` in SLF4J MDC.
+- **Automatic Cleanup**: Ensures the MDC is cleared after method execution.
+
+### 3. Startup Utilities (`dev.gmky.utils.startup`)
 
 #### `AppReadyLogging`
 Automatically logs application access URLs (Local, External, Swagger) when the application starts.
 
-### 3. Common Utilities (`dev.gmky.utils.common`)
+### 4. Common Utilities (`dev.gmky.utils.common`)
 
 #### `DateUtil`
 
@@ -58,7 +78,7 @@ Static access to Spring Beans.
 - `getBean(Class<T> clazz)`: Retrieve bean by class.
 - `getProperty(String key)`: Retrieve environment property.
 
-### 4. Mappers (`dev.gmky.utils.mapper`)
+### 5. Mappers (`dev.gmky.utils.mapper`)
 
 #### `EntityMapper<D, E>`
 
@@ -76,14 +96,14 @@ Base MapStruct interface for Entity-DTO conversion.
 <dependency>
     <groupId>dev.gmky</groupId>
     <artifactId>gmky-spring-utils</artifactId>
-    <version>0.0.5</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'dev.gmky:gmky-spring-utils:0.0.5'
+implementation 'dev.gmky:gmky-spring-utils:1.0.0'
 ```
 
 ## Requirements
