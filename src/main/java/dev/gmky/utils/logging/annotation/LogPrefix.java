@@ -58,7 +58,7 @@ public @interface LogPrefix {
      * <ul>
      *   <li>{@code #paramName} - Access by parameter name</li>
      *   <li>{@code #p0}, {@code #a0} - Positional argument access</li>
-     *   <li>{@code #order.id} - Property access</li>
+     *   <li>{@code #order.id} - Property access (null-safe, behaves like {@code ?.})</li>
      * </ul>
      *
      * @return the log prefix value or SpEL expression

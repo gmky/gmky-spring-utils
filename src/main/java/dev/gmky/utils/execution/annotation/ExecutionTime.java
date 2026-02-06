@@ -31,7 +31,8 @@ import java.lang.annotation.*;
  * }</pre>
  * <p>
  * The {@code key} attribute supports Spring Expression Language (SpEL). You can access method arguments
- * using the {@code #argName} or {@code #p0}, {@code #a0} syntax.
+ * using the {@code #argName} or {@code #p0}, {@code #a0} syntax. Property access is null-safe (behaves like {@code ?.})
+ * ensuring robust evaluation even with {@code null} parameters.
  * </p>
  *
  * @author HiepVH

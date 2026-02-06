@@ -22,7 +22,7 @@ public void processPayment(Order order) {
 // Logs: Method [Payment] - [123] executed in 150 ms
 ```
 
-*(Supports SpEL for `key` evaluation)*
+*(Supports SpEL for `key` evaluation with null-safe property access)*
 
 ### 2. Logging Utilities (`dev.gmky.utils.logging`)
 
@@ -40,7 +40,8 @@ public void process(String userId) {
 }
 ```
 
-- **SpEL Support**: Evaluates the prefix dynamically using Spring Expression Language.
+- **SpEL Support**: Evaluates the prefix dynamically using Spring Expression Language (supports null-safe property
+  access like `#input.id`).
 - **MDC Integration**: Automatically manages `logPrefix` in SLF4J MDC.
 - **Automatic Cleanup**: Ensures the MDC is cleared after method execution.
 
@@ -96,14 +97,14 @@ Base MapStruct interface for Entity-DTO conversion.
 <dependency>
     <groupId>dev.gmky</groupId>
     <artifactId>gmky-spring-utils</artifactId>
-    <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'dev.gmky:gmky-spring-utils:1.0.0'
+implementation 'dev.gmky:gmky-spring-utils:1.0.1'
 ```
 
 ## Requirements

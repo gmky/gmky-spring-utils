@@ -1,5 +1,6 @@
 package dev.gmky.utils.logging.aop;
 
+import dev.gmky.utils.core.NullSafePropertyAccessor;
 import dev.gmky.utils.logging.annotation.LogPrefix;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,6 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.MDC;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -41,7 +41,7 @@ import java.lang.reflect.Method;
  * <ul>
  *   <li>{@code #parameterName} - Access by parameter name (requires -parameters compiler flag)</li>
  *   <li>{@code #p0}, {@code #a0} - Positional argument access (always works)</li>
- *   <li>Property access: {@code #order.id}, {@code #user.name}, etc.</li>
+ *   <li>Property access: {@code #order.id}, {@code #user.name}, etc. (null-safe, behaves like {@code ?.})</li>
  * </ul>
  *
  * <h3>Example:</h3>
@@ -90,7 +90,8 @@ public class LogPrefixAspectImpl implements LogPrefixAspect {
             Method method = methodSignature.getMethod();
             Object[] args = joinPoint.getArgs();
 
-            EvaluationContext context = new StandardEvaluationContext();
+            StandardEvaluationContext context = new StandardEvaluationContext();
+            context.addPropertyAccessor(new NullSafePropertyAccessor());
             String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
 
             if (paramNames != null) {
@@ -110,10 +111,10 @@ public class LogPrefixAspectImpl implements LogPrefixAspect {
             return value != null ? value.toString() : "";
         } catch (Exception e) {
             // Fallback to raw string if evaluation fails (e.g., it's a literal string not an expression)
-            // Ideally we check if it looks like an expression, but SpEL can parse literals too.
-            // If it fails, log warning or just return raw.
+            // If it contains # or starts with single quote, it's likely an expression that failed, so return empty.
             log.trace("SpEL evaluation failed for key [{}], using raw value", keyExpression, e);
-            return keyExpression;
+            boolean isLikelyExpression = keyExpression.contains("#") || keyExpression.contains("'");
+            return isLikelyExpression ? "" : keyExpression;
         }
     }
 

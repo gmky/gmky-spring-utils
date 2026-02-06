@@ -1,5 +1,6 @@
 package dev.gmky.utils.execution.aop;
 
+import dev.gmky.utils.core.NullSafePropertyAccessor;
 import dev.gmky.utils.execution.annotation.ExecutionTime;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -108,7 +108,8 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
     /**
      * Extracts the key from the {@link ExecutionTime} annotation, supporting SpEL expressions.
      * <p>
-     * The key is evaluated against the method arguments.
+     * The key is evaluated against the method arguments. Property access is null-safe,
+     * behaving like {@code ?.}.
      * </p>
      *
      * @param joinPoint the proceeding join point
@@ -126,7 +127,8 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
             Method method = methodSignature.getMethod();
             Object[] args = joinPoint.getArgs();
 
-            EvaluationContext context = new StandardEvaluationContext();
+            StandardEvaluationContext context = new StandardEvaluationContext();
+            context.addPropertyAccessor(new NullSafePropertyAccessor());
             String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
 
             if (paramNames != null) {
@@ -146,10 +148,10 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
             return value != null ? value.toString() : "";
         } catch (Exception e) {
             // Fallback to raw string if evaluation fails (e.g., it's a literal string not an expression)
-            // Ideally we check if it looks like an expression, but SpEL can parse literals too.
-            // If it fails, log warning or just return raw.
+            // If it contains # or starts with single quote, it's likely an expression that failed, so return empty.
             log.trace("SpEL evaluation failed for key [{}], using raw value", keyExpression, e);
-            return keyExpression;
+            boolean isLikelyExpression = keyExpression.contains("#") || keyExpression.contains("'");
+            return isLikelyExpression ? "" : keyExpression;
         }
     }
 

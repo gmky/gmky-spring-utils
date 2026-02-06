@@ -170,6 +170,10 @@ class ExecutionTimeAspectTest {
         @ExecutionTime(key = "")
         public void testMethodWithBlankKey() {
         }
+
+        @ExecutionTime(key = "'REQ-' + #p0.id")
+        public void testMethodWithComplexSpel(Object input) {
+        }
     }
 
     @Test
@@ -186,7 +190,7 @@ class ExecutionTimeAspectTest {
     }
 
     @Test
-    void around_ShouldFallbackToRawKey_WhenSpelFails() throws Throwable {
+    void around_ShouldReturnEmptyString_WhenSpelFails() throws Throwable {
         Method method = TestClass.class.getMethod("testMethodWithInvalidSpel");
         when(joinPoint.getSignature()).thenReturn(signature);
         when(signature.getMethod()).thenReturn(method);
@@ -196,7 +200,24 @@ class ExecutionTimeAspectTest {
         aspect.around(joinPoint);
 
         String logMessage = listAppender.list.getLast().getFormattedMessage();
-        assertTrue(logMessage.contains("- [#invalid.expression] executed"));
+        assertTrue(logMessage.contains("- [] executed"), "Should contain empty key in brackets");
+    }
+
+    @Test
+    void around_ShouldHandleComplexSpelWithNullTarget() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithComplexSpel", Object.class);
+        Object[] args = new Object[]{null};
+
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.getArgs()).thenReturn(args);
+        when(joinPoint.proceed()).thenReturn("success");
+
+        aspect.around(joinPoint);
+
+        String logMessage = listAppender.list.getLast().getFormattedMessage();
+        // SpEL evaluates "'REQ-' + null" to "REQ-null" when property accessor returns null
+        assertTrue(logMessage.contains("- [REQ-null] executed"), "Should support REQ-null for null targets in complex SpEL");
     }
 
     @Test
