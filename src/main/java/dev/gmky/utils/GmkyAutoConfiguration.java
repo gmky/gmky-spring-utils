@@ -3,6 +3,7 @@ package dev.gmky.utils;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 /**
  * Main auto-configuration class for GMKY Spring Utils library.
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @AutoConfiguration
+@PropertySource("classpath:application.properties")
 @ComponentScan(basePackages = "dev.gmky.utils")
 public class GmkyAutoConfiguration {
 }
