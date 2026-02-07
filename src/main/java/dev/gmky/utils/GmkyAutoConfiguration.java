@@ -1,9 +1,20 @@
 package dev.gmky.utils;
 
+import dev.gmky.utils.execution.aop.ExecutionTimeAspect;
+import dev.gmky.utils.execution.aop.ExecutionTimeAspectImpl;
+import dev.gmky.utils.logging.aop.LogPrefixAspect;
+import dev.gmky.utils.logging.aop.LogPrefixAspectImpl;
+import dev.gmky.utils.startup.AppReadyLogging;
+import dev.gmky.utils.startup.AppReadyLoggingImpl;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 
 /**
  * Main auto-configuration class for GMKY Spring Utils library.
@@ -27,9 +38,33 @@ import org.springframework.context.annotation.PropertySource;
  * @see org.springframework.boot.autoconfigure.AutoConfiguration
  * @since 1.0.0
  */
+@Slf4j
 @Configuration
 @AutoConfiguration
-@PropertySource("classpath:application.properties")
+@RequiredArgsConstructor
 @ComponentScan(basePackages = "dev.gmky.utils")
+@PropertySource("classpath:application.properties")
 public class GmkyAutoConfiguration {
+    private final Environment env;
+
+    @Bean
+    @ConditionalOnMissingBean(AppReadyLogging.class)
+    public AppReadyLogging appReadyLogging() {
+        log.info("Initializing AppReadyLogging...");
+        return new AppReadyLoggingImpl(env);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ExecutionTimeAspect.class)
+    public ExecutionTimeAspectImpl executionTimeAspect() {
+        log.info("Initializing ExecutionTimeAspect...");
+        return new ExecutionTimeAspectImpl();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LogPrefixAspect.class)
+    public LogPrefixAspectImpl logPrefixAspect() {
+        log.info("Initializing LogPrefixAspect...");
+        return new LogPrefixAspectImpl();
+    }
 }

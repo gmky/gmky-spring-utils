@@ -17,7 +17,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 
@@ -59,7 +58,6 @@ import java.lang.reflect.Method;
  */
 @Slf4j
 @Aspect
-@Component
 @RequiredArgsConstructor
 public class LogPrefixAspectImpl implements LogPrefixAspect {
     private static final String MDC_LOG_PREFIX = "logPrefix";
@@ -118,6 +116,13 @@ public class LogPrefixAspectImpl implements LogPrefixAspect {
         }
     }
 
+    /**
+     * Retrieves the {@link LogPrefix} annotation from the intercepted method.
+     *
+     * @param joinPoint the proceeding join point
+     * @return the LogPrefix annotation instance
+     * @throws NullPointerException if the annotation is not found
+     */
     @NonNull
     private static LogPrefix getAnnotation(ProceedingJoinPoint joinPoint) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();

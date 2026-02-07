@@ -3,6 +3,7 @@ package dev.gmky.utils.execution.aop;
 import dev.gmky.utils.core.NullSafePropertyAccessor;
 import dev.gmky.utils.execution.annotation.ExecutionTime;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -15,7 +16,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 import java.lang.reflect.Method;
@@ -35,22 +35,10 @@ import java.lang.reflect.Method;
  *
  * <h3>Configuration:</h3>
  * <p>
- * This aspect is automatically registered as a Spring bean via {@code @Component}.
- * Ensure that AspectJ auto-proxying is enabled in your Spring configuration:
+ * This aspect is automatically registered as a Spring bean via
+ * {@link dev.gmky.utils.GmkyAutoConfiguration}.
+ * Ensure that AspectJ auto-proxying is enabled in your Spring configuration.
  * </p>
- * <pre>{@code
- * @EnableAspectJAutoProxy
- * @Configuration
- * public class AopConfig {
- *     // configuration
- * }
- * }</pre>
- *
- * <h3>Log Format:</h3>
- * <ul>
- *   <li>Success: {@code Method [methodName] - [key] executed in X ms}</li>
- *   <li>Failure: {@code Method [methodName] - [key] failed in X ms}</li>
- * </ul>
  *
  * @author HiepVH
  * @since 1.0.0
@@ -58,7 +46,7 @@ import java.lang.reflect.Method;
  */
 @Slf4j
 @Aspect
-@Component
+@RequiredArgsConstructor
 public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
 
     // SpEL Parser
