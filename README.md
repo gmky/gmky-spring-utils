@@ -89,6 +89,47 @@ Base MapStruct interface for Entity-DTO conversion.
 - `toEntity(D dto)`
 - `partialUpdate(D dto, E entity)`
 
+### 6. Spring Batch Utilities (`dev.gmky.utils.batch`)
+
+Extensible framework for building robust batch jobs with minimal boilerplate.
+
+#### Core Components
+
+- **`BatchJobFactory`**: Fluent API for creating simple and multi-step jobs.
+- **`AbstractDynamicProcessor`**: Base processor with hooks (`preProcess`, `validate`, `transform`, `postProcess`).
+- **`AbstractDynamicWriter`**: Base writer with lifecycle hooks.
+
+#### Smart Readers (JPA Pagination)
+
+- **`JpaPagingReader`**: Memory-efficient JPQL reader that clears EntityManager.
+- **`RepositoryPagingReader`**: Spring Data Repository reader.
+- **`JpaSpecificationReader`**: Dynamic JPA Specification reader.
+
+#### Optimized Writers
+
+- **`JpaBatchWriter`**: Batch inserts/updates with periodic flushing.
+- **`RepositoryWriter`**: Wrapper for `CrudRepository.saveAll`.
+
+#### Example Usage
+
+```java
+@Bean
+public Job userMigrationJob(BatchJobFactory factory, UserRepository repo) {
+    return factory.createSimpleJob(
+        "userMigration",
+        new RepositoryPagingReader<>(repo, 100, Sort.by("id")),
+        new AbstractDynamicProcessor<User, UserDTO>() {
+            @Override
+            protected UserDTO transform(User user) {
+                return toDto(user);
+            }
+        },
+        new JpaBatchWriter<>(entityManagerFactory, 100),
+        BatchJobConfig.simple(100)
+    );
+}
+```
+
 ## Installation
 
 ### Maven
@@ -97,7 +138,7 @@ Base MapStruct interface for Entity-DTO conversion.
 <dependency>
     <groupId>dev.gmky</groupId>
     <artifactId>gmky-spring-utils</artifactId>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
 </dependency>
 ```
 
