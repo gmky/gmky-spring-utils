@@ -1,1 +1,2 @@
 dev.gmky.utils.GmkyAutoConfiguration
+dev.gmky.utils.batch.config.BatchAutoConfiguration
