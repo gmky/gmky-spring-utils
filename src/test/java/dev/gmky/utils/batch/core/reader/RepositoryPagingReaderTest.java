@@ -49,6 +49,18 @@ class RepositoryPagingReaderTest {
     }
 
     @Test
+    void testConstructorWithNullSortUsesUnsorted() {
+        reader = new RepositoryPagingReader<>(repository, 10, null);
+        Page<TestEntity> page = new PageImpl<>(Collections.emptyList());
+        when(repository.findAll(any(Pageable.class))).thenReturn(page);
+        
+        reader.open(new ExecutionContext());
+        try { reader.read(); } catch (Exception e) {}
+        
+        verify(repository).findAll(PageRequest.of(0, 10, Sort.unsorted()));
+    }
+
+    @Test
     void testReadFirstPage() throws Exception {
         List<TestEntity> content = Arrays.asList(
             new TestEntity(1L, "Entity 1"),

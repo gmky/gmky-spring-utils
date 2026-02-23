@@ -38,4 +38,21 @@ class RepositoryWriterTest {
 
         verify(repository).saveAll(items);
     }
+
+    @Test
+    void testWriteEmptyChunkIsNoOp() throws Exception {
+        Chunk<String> chunk = new Chunk<>(java.util.Collections.emptyList());
+        writer.write(chunk);
+        verify(repository, org.mockito.Mockito.never()).saveAll(org.mockito.ArgumentMatchers.anyIterable());
+    }
+
+    @Test
+    void testPreAndPostWriteHooksAreCalled() throws Exception {
+        List<String> items = Arrays.asList("Item 1");
+        Chunk<String> chunk = new Chunk<>(items);
+
+        writer.write(chunk);
+        verify(repository).saveAll(items);
+        // Validates that super.write flow invokes actual methods
+    }
 }

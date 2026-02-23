@@ -33,4 +33,26 @@ class RequestUtilTest {
 
         assertNull(headerValue);
     }
+
+    @Test
+    void getHeader_ShouldReturnNullForMissingHeader() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        
+        String headerValue = RequestUtil.getHeader("Missing-Header");
+        assertNull(headerValue);
+        RequestContextHolder.resetRequestAttributes();
+    }
+    
+    @Test
+    void getHeader_WithMultipleHeaders_ShouldReturnCorrectOne() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Header-A", "Value-A");
+        request.addHeader("Header-B", "Value-B");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        
+        String headerValue = RequestUtil.getHeader("Header-B");
+        assertEquals("Value-B", headerValue);
+        RequestContextHolder.resetRequestAttributes();
+    }
 }

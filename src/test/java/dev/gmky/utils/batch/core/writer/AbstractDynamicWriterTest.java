@@ -114,6 +114,21 @@ class AbstractDynamicWriterTest {
         assertEquals(4, writer.getWrittenItems().size());
     }
 
+    @Test
+    void testDefaultOpenNoOp() {
+        assertDoesNotThrow(() -> writer.open(new org.springframework.batch.item.ExecutionContext()));
+    }
+
+    @Test
+    void testDefaultUpdateNoOp() {
+        assertDoesNotThrow(() -> writer.update(new org.springframework.batch.item.ExecutionContext()));
+    }
+
+    @Test
+    void testDefaultCloseNoOp() {
+        assertDoesNotThrow(() -> writer.close());
+    }
+
     /**
      * Test implementation of AbstractDynamicWriter.
      */

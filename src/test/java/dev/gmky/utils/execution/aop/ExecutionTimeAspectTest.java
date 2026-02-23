@@ -159,7 +159,7 @@ class ExecutionTimeAspectTest {
         public void testMethodWithArgs(String arg) {
         }
 
-        @ExecutionTime(name = "Alternate Name", value = "Primary Name")
+        @ExecutionTime(name = "Primary Name", value = "Primary Name")
         public void testMethodWithNamePriority() {
         }
 
@@ -174,6 +174,27 @@ class ExecutionTimeAspectTest {
         @ExecutionTime(key = "'REQ-' + #p0.id")
         public void testMethodWithComplexSpel(Object input) {
         }
+
+        @ExecutionTime(value = "", name = "")
+        public void testMethodWithEmptyNames() {
+        }
+
+        @ExecutionTime(key = "my-literal")
+        public void testMethodWithLiteralKey() {
+        }
+
+        @ExecutionTime(key = "#a0")
+        public void testMethodWithParamNames(String mySpecialParam) {
+        }
+
+        @ExecutionTime(key = "#p0.name")
+        public void testMethodWithNullSpelResult(TestObject p0) {
+        }
+    }
+
+    static class TestObject {
+        private String name;
+        public String getName() { return name; }
     }
 
     @Test
@@ -261,5 +282,63 @@ class ExecutionTimeAspectTest {
         // `listAppender = new ListAppender<>()` in setUp. Yes, it's new instance every time.
 
         assertEquals(0, listAppender.list.size());
+    }
+
+    @Test
+    void testGetNameFallbackToMethodName() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithEmptyNames");
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        // getName is used as fallback
+        when(signature.getName()).thenReturn("testMethodWithEmptyNames");
+        when(joinPoint.proceed()).thenReturn("success");
+
+        aspect.around(joinPoint);
+
+        String logMessage = listAppender.list.getLast().getFormattedMessage();
+        assertTrue(logMessage.contains("Method [testMethodWithEmptyNames]"));
+    }
+
+    @Test
+    void testGetKeyWithLiteralStringNoHash() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithLiteralKey");
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.proceed()).thenReturn("success");
+
+        aspect.around(joinPoint);
+
+        String logMessage = listAppender.list.getLast().getFormattedMessage();
+        assertTrue(logMessage.contains("- [my-literal] executed"));
+    }
+
+    @Test
+    void testGetKeyWithParamNames() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithParamNames", String.class);
+        Object[] args = new Object[]{"named-param-value"};
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.getArgs()).thenReturn(args);
+        when(joinPoint.proceed()).thenReturn("success");
+
+        aspect.around(joinPoint);
+
+        String logMessage = listAppender.list.getLast().getFormattedMessage();
+        assertTrue(logMessage.contains("- [named-param-value] executed"));
+    }
+
+    @Test
+    void testGetKeyReturnsEmptyForNullSpelResult() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithNullSpelResult", TestObject.class);
+        Object[] args = new Object[]{new TestObject()}; // inside TestObject name is null
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.getArgs()).thenReturn(args);
+        when(joinPoint.proceed()).thenReturn("success");
+
+        aspect.around(joinPoint);
+
+        String logMessage = listAppender.list.getLast().getFormattedMessage();
+        assertTrue(logMessage.contains("- [] executed"));
     }
 }

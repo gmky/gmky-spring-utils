@@ -10,26 +10,10 @@ class DateUtilTest {
 
     @Test
     void formatDate_ShouldReturnFormattedString_WhenDateAndPatternAreValid() {
-        // Note: Date.from(Instant) uses system default zone when converted back to string usually, 
-        // but DateUtil uses date.toInstant() and DateTimeFormatter.
-        // Instant cannot be formatted with pattern "yyyy-MM-dd" without a ZoneId 
-        // because it doesn't have human time fields. 
-        // We suspect the implementation might fail for pattern-based formatting on Instant 
-        // if not handled with a Zone.
-        // Let's test with a pattern that relies on Zone to see if it fails (it likely will).
-        // Or maybe the pattern "ISO_INSTANT" works.
-
-        Date date = new Date(1706774400000L); // 2024-02-01 08:00:00 UTC (approx)
+        Date date = new Date(1706774400000L); 
         String pattern = "yyyy-MM-dd";
-
-        // This execution is expected to fail with UnsupportedTemporalTypeException 
-        // if the implementation just does formatter.format(instant).
-        // Let's see what happens.
-
         String result = DateUtil.formatDate(date, pattern);
 
-        // Assert
-        // Result depends on local timezone, but we can verify it's not null and matches length/format roughly
         assertNotNull(result);
         assertTrue(result.matches("\\d{4}-\\d{2}-\\d{2}")); // yyyy-MM-dd
     }
@@ -38,5 +22,31 @@ class DateUtilTest {
     void formatDate_ShouldReturnNull_WhenDateIsNull() {
         String result = DateUtil.formatDate(null, "yyyy-MM-dd");
         assertNull(result);
+    }
+
+    @Test
+    void testFormatDateWithTimePattern() {
+        Date date = new Date(1706774400000L); // timestamp
+        String result = DateUtil.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+        assertNotNull(result);
+        assertTrue(result.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"));
+    }
+
+    @Test
+    void testFormatDateWithDifferentPatterns() {
+        Date date = new Date(1706774400000L); 
+        String result1 = DateUtil.formatDate(date, "dd/MM/yyyy");
+        String result2 = DateUtil.formatDate(date, "MM-dd-yyyy");
+        assertNotNull(result1);
+        assertNotNull(result2);
+        assertTrue(result1.matches("\\d{2}/\\d{2}/\\d{4}"));
+        assertTrue(result2.matches("\\d{2}-\\d{2}-\\d{4}"));
+    }
+
+    @Test
+    void testFormatDateWithSpecificKnownDate() {
+        Date date = new Date(1706774400000L); 
+        String result = DateUtil.formatDate(date, "yyyy");
+        assertEquals("2024", result); // For most timezones it's 2024
     }
 }

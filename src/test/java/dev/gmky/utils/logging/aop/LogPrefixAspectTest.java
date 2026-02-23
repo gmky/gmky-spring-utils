@@ -13,6 +13,8 @@ import org.slf4j.MDC;
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -127,6 +129,61 @@ class LogPrefixAspectTest {
         assertEquals("REQ-null", result, "Should return partial result with 'null' placeholder when property access fails");
     }
 
+    @Test
+    void testAroundWithBlankAnnotationValue() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithBlankKey");
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.proceed()).thenAnswer(invocation -> MDC.get("logPrefix"));
+        Object result = aspect.around(joinPoint);
+        assertEquals("", result);
+    }
+
+    @Test
+    void testAroundWithDefaultAnnotationValue() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithDefault");
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.proceed()).thenAnswer(invocation -> MDC.get("logPrefix"));
+        Object result = aspect.around(joinPoint);
+        assertEquals("", result);
+    }
+
+    @Test
+    void testMdcIsCleanedUpOnException() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithLiteral");
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.proceed()).thenThrow(new RuntimeException("Test Exception"));
+
+        assertThrows(RuntimeException.class, () -> aspect.around(joinPoint));
+        assertNull(MDC.get("logPrefix"), "MDC should be cleaned up after exception");
+    }
+
+    @Test
+    void testAroundWithParamNamesNotNull() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithParamNames", String.class);
+        Object[] args = new Object[]{"named-param-value"};
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.getArgs()).thenReturn(args);
+        when(joinPoint.proceed()).thenAnswer(invocation -> MDC.get("logPrefix"));
+
+        Object result = aspect.around(joinPoint);
+        assertEquals("named-param-value", result);
+    }
+
+    @Test
+    void testGetKeyWithLiteralStringContainingHash() throws Throwable {
+        Method method = TestClass.class.getMethod("testMethodWithMissingVar");
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(method);
+        when(joinPoint.getArgs()).thenReturn(new Object[0]);
+        when(joinPoint.proceed()).thenAnswer(invocation -> MDC.get("logPrefix"));
+        Object result = aspect.around(joinPoint);
+        assertEquals("", result);
+    }
+
     static class TestClass {
         @LogPrefix("#p0.id")
         public void testMethodWithNullArg(Object input) {
@@ -142,6 +199,22 @@ class LogPrefixAspectTest {
 
         @LogPrefix("'REQ-' + #p0.id")
         public void testMethodWithComplexSpel(Object input) {
+        }
+
+        @LogPrefix("")
+        public void testMethodWithBlankKey() {
+        }
+
+        @LogPrefix
+        public void testMethodWithDefault() {
+        }
+
+        @LogPrefix("#a0")
+        public void testMethodWithParamNames(String mySpecialParam) {
+        }
+
+        @LogPrefix("#missingVar")
+        public void testMethodWithMissingVar() {
         }
     }
 }
