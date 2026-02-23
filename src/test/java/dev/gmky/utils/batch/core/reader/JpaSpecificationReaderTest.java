@@ -54,6 +54,18 @@ class JpaSpecificationReaderTest {
     }
 
     @Test
+    void testConstructorWithNullSortUsesUnsorted() {
+        reader = new JpaSpecificationReader<>(repository, specification, 10, null);
+        Page<TestEntity> page = new PageImpl<>(Collections.emptyList());
+        when(repository.findAll(eq(specification), any(Pageable.class))).thenReturn(page);
+
+        reader.open(new ExecutionContext());
+        try { reader.read(); } catch (Exception e) {}
+
+        verify(repository).findAll(eq(specification), eq(PageRequest.of(0, 10, Sort.unsorted())));
+    }
+
+    @Test
     void testReadFirstPage() throws Exception {
         List<TestEntity> content = Arrays.asList(
             new TestEntity(1L, "Entity 1"),

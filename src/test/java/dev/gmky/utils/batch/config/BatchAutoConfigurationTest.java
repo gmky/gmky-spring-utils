@@ -33,9 +33,29 @@ class BatchAutoConfigurationTest {
             });
     }
 
+
     @Test
-    void testAutoConfigurationDisabledWhenMissingDependencies() {
-        // Test behavior when dependencies are missing if needed
+    void testCustomBatchJobFactoryOverridesDefault() {
+        contextRunner.withUserConfiguration(BatchTestConfig.class, CustomBatchJobFactoryConfig.class).run(context -> {
+            assertThat(context).hasSingleBean(BatchJobFactory.class);
+            assertThat(context).hasBean("customBatchJobFactory");
+        });
+    }
+
+    @Test
+    void testCustomLoggingJobListenerOverridesDefault() {
+        contextRunner.withUserConfiguration(BatchTestConfig.class, CustomJobListenerConfig.class).run(context -> {
+            assertThat(context).hasSingleBean(LoggingJobExecutionListener.class);
+            assertThat(context).hasBean("customLoggingJobExecutionListener");
+        });
+    }
+
+    @Test
+    void testCustomLoggingStepListenerOverridesDefault() {
+        contextRunner.withUserConfiguration(BatchTestConfig.class, CustomStepListenerConfig.class).run(context -> {
+            assertThat(context).hasSingleBean(LoggingStepExecutionListener.class);
+            assertThat(context).hasBean("customLoggingStepExecutionListener");
+        });
     }
 
     @Configuration
@@ -54,6 +74,30 @@ class BatchAutoConfigurationTest {
         @Bean
         public DataSource dataSource() {
             return mock(DataSource.class);
+        }
+    }
+
+    @Configuration
+    static class CustomBatchJobFactoryConfig {
+        @Bean
+        public BatchJobFactory customBatchJobFactory() {
+            return new BatchJobFactory();
+        }
+    }
+
+    @Configuration
+    static class CustomJobListenerConfig {
+        @Bean
+        public LoggingJobExecutionListener customLoggingJobExecutionListener() {
+            return new LoggingJobExecutionListener();
+        }
+    }
+
+    @Configuration
+    static class CustomStepListenerConfig {
+        @Bean
+        public LoggingStepExecutionListener customLoggingStepExecutionListener() {
+            return new LoggingStepExecutionListener();
         }
     }
 }

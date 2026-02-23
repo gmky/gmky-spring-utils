@@ -157,6 +157,48 @@ class BatchJobFactoryTest {
     }
 
     @Test
+    void testCreateStepWithSkipLimitOnlyNoRetry() {
+        BatchJobConfig config = BatchJobConfig.builder()
+            .chunkSize(100)
+            .skipLimit(10)
+            .retryLimit(0)
+            .skippableExceptions(Collections.singletonList(IllegalArgumentException.class))
+            .build();
+
+        Step step = factory.createStep(
+            "skipStep",
+            reader,
+            processor,
+            writer,
+            config
+        );
+
+        assertNotNull(step);
+        assertEquals("skipStep", step.getName());
+    }
+
+    @Test
+    void testCreateStepWithRetryLimitOnlyNoSkip() {
+        BatchJobConfig config = BatchJobConfig.builder()
+            .chunkSize(100)
+            .skipLimit(0)
+            .retryLimit(3)
+            .retryableExceptions(Collections.singletonList(RuntimeException.class))
+            .build();
+
+        Step step = factory.createStep(
+            "retryStep",
+            reader,
+            processor,
+            writer,
+            config
+        );
+
+        assertNotNull(step);
+        assertEquals("retryStep", step.getName());
+    }
+
+    @Test
     void testCreateMultiStepJob() {
         Step step1 = mock(Step.class);
         Step step2 = mock(Step.class);

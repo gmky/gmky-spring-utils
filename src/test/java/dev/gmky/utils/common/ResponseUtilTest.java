@@ -110,4 +110,66 @@ class ResponseUtilTest {
         
         RequestContextHolder.resetRequestAttributes();
     }
+
+    @Test
+    void testGeneratePaginationHeaderFirstPage() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/api/resource");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        Page<String> page = new PageImpl<>(Arrays.asList("item"), PageRequest.of(0, 10), 30);
+        HttpHeaders headers = ResponseUtil.generatePaginationHeader(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        String link = headers.getFirst("Link");
+        assertTrue(link.contains("rel=\"next\""));
+        assertTrue(link.contains("rel=\"last\""));
+        assertTrue(link.contains("rel=\"first\""));
+        assertFalse(link.contains("rel=\"prev\""));
+        RequestContextHolder.resetRequestAttributes();
+    }
+
+    @Test
+    void testGeneratePaginationHeaderLastPage() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/api/resource");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        Page<String> page = new PageImpl<>(Arrays.asList("item"), PageRequest.of(2, 10), 30);
+        HttpHeaders headers = ResponseUtil.generatePaginationHeader(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        String link = headers.getFirst("Link");
+        assertFalse(link.contains("rel=\"next\""));
+        assertTrue(link.contains("rel=\"prev\""));
+        assertTrue(link.contains("rel=\"last\""));
+        assertTrue(link.contains("rel=\"first\""));
+        RequestContextHolder.resetRequestAttributes();
+    }
+
+    @Test
+    void testGeneratePaginationHeaderSinglePage() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/api/resource");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        Page<String> page = new PageImpl<>(Arrays.asList("item"), PageRequest.of(0, 10), 5);
+        HttpHeaders headers = ResponseUtil.generatePaginationHeader(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        String link = headers.getFirst("Link");
+        assertFalse(link.contains("rel=\"next\""));
+        assertFalse(link.contains("rel=\"prev\""));
+        assertTrue(link.contains("rel=\"last\""));
+        assertTrue(link.contains("rel=\"first\""));
+        RequestContextHolder.resetRequestAttributes();
+    }
+
+    @Test
+    void testPreparePageUriEscapesCommaAndSemicolon() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/api/resource,test;case");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        Page<String> page = new PageImpl<>(Arrays.asList("item"), PageRequest.of(0, 10), 5);
+        HttpHeaders headers = ResponseUtil.generatePaginationHeader(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        String link = headers.getFirst("Link");
+        assertTrue(link.contains("%2C"));
+        assertTrue(link.contains("%3B"));
+        RequestContextHolder.resetRequestAttributes();
+    }
 }

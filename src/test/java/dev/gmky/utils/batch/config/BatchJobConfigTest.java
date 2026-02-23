@@ -24,6 +24,18 @@ class BatchJobConfigTest {
     }
 
     @Test
+    void testDefaultConfigSkippableExceptionsContainsBaseException() {
+        BatchJobConfig config = BatchJobConfig.defaultConfig();
+        assertTrue(config.getSkippableExceptions().contains(Exception.class));
+    }
+
+    @Test
+    void testDefaultConfigRetryableExceptionsContainsBaseException() {
+        BatchJobConfig config = BatchJobConfig.defaultConfig();
+        assertTrue(config.getRetryableExceptions().contains(Exception.class));
+    }
+
+    @Test
     void testSimpleConfig() {
         BatchJobConfig config = BatchJobConfig.simple(500);
 

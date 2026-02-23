@@ -67,6 +67,27 @@ class JpaPagingReaderTest {
     }
 
     @Test
+    void testConstructorWithNullParametersUsesEmptyMap() throws Exception {
+        reader = new JpaPagingReader<>(
+            entityManagerFactory,
+            "SELECT e FROM TestEntity e",
+            TestEntity.class,
+            100,
+            null
+        );
+
+        when(entityManager.createQuery(anyString(), eq(TestEntity.class))).thenReturn(query);
+        when(query.setFirstResult(anyInt())).thenReturn(query);
+        when(query.setMaxResults(anyInt())).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+
+        reader.open(new ExecutionContext());
+        reader.read();
+
+        verify(query, never()).setParameter(anyString(), any());
+    }
+
+    @Test
     void testReadFirstPage() throws Exception {
         List<TestEntity> page1 = Arrays.asList(
             new TestEntity(1L, "Entity 1"),
