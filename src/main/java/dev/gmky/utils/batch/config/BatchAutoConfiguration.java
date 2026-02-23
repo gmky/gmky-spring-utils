@@ -28,8 +28,8 @@ public class BatchAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public BatchJobFactory batchJobFactory() {
-        return new BatchJobFactory();
+    public BatchJobFactory batchJobFactory(JobRepository jobRepository, org.springframework.transaction.PlatformTransactionManager transactionManager) {
+        return new BatchJobFactory(jobRepository, transactionManager);
     }
 
     /**
