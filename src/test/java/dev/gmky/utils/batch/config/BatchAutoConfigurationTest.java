@@ -80,8 +80,8 @@ class BatchAutoConfigurationTest {
     @Configuration
     static class CustomBatchJobFactoryConfig {
         @Bean
-        public BatchJobFactory customBatchJobFactory() {
-            return new BatchJobFactory();
+        public BatchJobFactory customBatchJobFactory(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+            return new BatchJobFactory(jobRepository, transactionManager);
         }
     }
 

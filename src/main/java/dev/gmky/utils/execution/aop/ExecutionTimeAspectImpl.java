@@ -15,10 +15,12 @@ import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.StopWatch;
 
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Aspect for monitoring method execution time.
@@ -49,9 +51,14 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
 
+    private static final NullSafePropertyAccessor PROPERTY_ACCESSOR = new NullSafePropertyAccessor();
+    private static final String[] EMPTY_PARAM_NAMES = new String[0];
+
     // SpEL Parser
     private final ExpressionParser parser = new SpelExpressionParser();
     private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
+    private final Map<Method, String[]> paramNamesCache = new ConcurrentHashMap<>();
+    private final Map<String, Expression> expressionCache = new ConcurrentHashMap<>();
 
     /**
      * Around advice that measures and logs method execution time.
@@ -115,11 +122,14 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
             Method method = methodSignature.getMethod();
             Object[] args = joinPoint.getArgs();
 
-            StandardEvaluationContext context = new StandardEvaluationContext();
-            context.addPropertyAccessor(new NullSafePropertyAccessor());
-            String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
+            SimpleEvaluationContext context = SimpleEvaluationContext.forPropertyAccessors(PROPERTY_ACCESSOR).build();
 
-            if (paramNames != null) {
+            String[] paramNames = paramNamesCache.computeIfAbsent(method, m -> {
+                String[] names = parameterNameDiscoverer.getParameterNames(m);
+                return names != null ? names : EMPTY_PARAM_NAMES;
+            });
+
+            if (paramNames.length > 0) {
                 for (int i = 0; i < paramNames.length; i++) {
                     context.setVariable(paramNames[i], args[i]);
                 }
@@ -131,7 +141,7 @@ public class ExecutionTimeAspectImpl implements ExecutionTimeAspect {
                 context.setVariable("p" + i, args[i]);
             }
 
-            Expression expression = parser.parseExpression(keyExpression);
+            Expression expression = expressionCache.computeIfAbsent(keyExpression, parser::parseExpression);
             Object value = expression.getValue(context);
             return value != null ? value.toString() : "";
         } catch (Exception e) {

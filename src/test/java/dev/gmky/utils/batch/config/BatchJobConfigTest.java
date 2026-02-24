@@ -26,13 +26,13 @@ class BatchJobConfigTest {
     @Test
     void testDefaultConfigSkippableExceptionsContainsBaseException() {
         BatchJobConfig config = BatchJobConfig.defaultConfig();
-        assertTrue(config.getSkippableExceptions().contains(Exception.class));
+        assertTrue(config.getSkippableExceptions().contains(RuntimeException.class));
     }
 
     @Test
     void testDefaultConfigRetryableExceptionsContainsBaseException() {
         BatchJobConfig config = BatchJobConfig.defaultConfig();
-        assertTrue(config.getRetryableExceptions().contains(Exception.class));
+        assertTrue(config.getRetryableExceptions().contains(RuntimeException.class));
     }
 
     @Test

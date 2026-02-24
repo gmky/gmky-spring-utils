@@ -45,7 +45,7 @@ public class AppReadyLoggingImpl implements AppReadyLogging {
         try {
             hostAddress = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            log.warn("The host name could not be determined, using `localhost` as fallback");
+            log.warn("The host name could not be determined, using `localhost` as fallback", e);
         }
         log.info(
                 """

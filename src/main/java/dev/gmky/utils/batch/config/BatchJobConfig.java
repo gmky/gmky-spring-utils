@@ -43,7 +43,7 @@ public class BatchJobConfig {
      */
     @Builder.Default
     private List<Class<? extends Exception>> skippableExceptions = new ArrayList<>(
-            Collections.singletonList(Exception.class)
+            Collections.singletonList(RuntimeException.class)
     );
 
     /**
@@ -51,7 +51,7 @@ public class BatchJobConfig {
      */
     @Builder.Default
     private List<Class<? extends Exception>> retryableExceptions = new ArrayList<>(
-            Collections.singletonList(Exception.class)
+            Collections.singletonList(RuntimeException.class)
     );
 
     /**
