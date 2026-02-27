@@ -7,7 +7,7 @@
 
     <groupId>dev.gmky</groupId>
     <artifactId>gmky-spring-utils</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <name>GMKY Spring Utils</name>
@@ -129,6 +129,28 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
+        </dependency>
+
+        <!-- OpenCSV - CSV parsing engine -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.9</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Jakarta Validation API - for CsvRowValidator integration -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Hibernate Validator - Jakarta Validation provider (test scope only) -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

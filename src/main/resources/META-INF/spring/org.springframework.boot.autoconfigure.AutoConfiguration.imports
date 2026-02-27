@@ -1,2 +1,3 @@
 dev.gmky.utils.GmkyAutoConfiguration
 dev.gmky.utils.batch.config.BatchAutoConfiguration
+dev.gmky.utils.csv.config.CsvAutoConfiguration
