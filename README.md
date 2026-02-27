@@ -130,6 +130,34 @@ public Job userMigrationJob(BatchJobFactory factory, UserRepository repo) {
 }
 ```
 
+### 7. CSV Utilities (`dev.gmky.utils.csv`)
+
+High-performance, annotation-driven CSV-to-DTO mapping powered by OpenCSV.
+
+#### Core Features
+- **`OpenCsvStreamingReader`**: Read large CSVs lazily via `Stream` or `readAll` with customizable mapping.
+- **`CsvBatchReader`**: Native Spring Batch `ItemReader` integration.
+- **`@CsvRecord` & `@CsvColumn`**: Map CSV columns by precise name or sequence index.
+- **Type Conversion**: Built-in temporal, numeric, and enum converters with extensible `TypeConverterRegistry`.
+- **Validation**: Seamless `jakarta.validation` integration (e.g. Hibernate Validator).
+
+```java
+@CsvRecord(hasHeader = true, errorStrategy = ErrorStrategy.SKIP_AND_LOG)
+public class UserDto {
+    @CsvColumn(value = "Name", required = true)
+    private String name;
+    
+    @CsvColumn("Age")
+    private Integer age;
+}
+
+// Memory-safe stream reading
+OpenCsvStreamingReader.forType(UserDto.class)
+    .stream(inputStream)
+    .filter(u -> u.getAge() > 18)
+    .forEach(System.out::println);
+```
+
 ## Installation
 
 ### Maven
@@ -138,14 +166,14 @@ public Job userMigrationJob(BatchJobFactory factory, UserRepository repo) {
 <dependency>
     <groupId>dev.gmky</groupId>
     <artifactId>gmky-spring-utils</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'dev.gmky:gmky-spring-utils:1.0.2'
+implementation 'dev.gmky:gmky-spring-utils:1.0.4'
 ```
 
 ## Requirements
