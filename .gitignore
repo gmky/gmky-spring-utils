@@ -8,6 +8,8 @@ build/
 *.ipr
 *.iws
 .vscode/
+.gemini/
+.claude/
 .classpath
 .project
 .settings/
