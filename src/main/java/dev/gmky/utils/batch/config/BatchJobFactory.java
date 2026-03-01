@@ -10,6 +10,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -25,6 +26,7 @@ import java.util.List;
  * @since 1.0.3
  */
 @Component
+@ConditionalOnClass(JobRepository.class)
 @RequiredArgsConstructor
 public class BatchJobFactory {
 
