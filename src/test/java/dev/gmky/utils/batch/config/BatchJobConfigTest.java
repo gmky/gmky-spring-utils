@@ -17,22 +17,12 @@ class BatchJobConfigTest {
         BatchJobConfig config = BatchJobConfig.defaultConfig();
 
         assertEquals(100, config.getChunkSize());
-        assertEquals(10, config.getSkipLimit());
-        assertEquals(3, config.getRetryLimit());
+        assertEquals(0, config.getSkipLimit());   // no skip by default — must be explicit
+        assertEquals(0, config.getRetryLimit());  // no retry by default — must be explicit
         assertNotNull(config.getSkippableExceptions());
         assertNotNull(config.getRetryableExceptions());
-    }
-
-    @Test
-    void testDefaultConfigSkippableExceptionsContainsBaseException() {
-        BatchJobConfig config = BatchJobConfig.defaultConfig();
-        assertTrue(config.getSkippableExceptions().contains(RuntimeException.class));
-    }
-
-    @Test
-    void testDefaultConfigRetryableExceptionsContainsBaseException() {
-        BatchJobConfig config = BatchJobConfig.defaultConfig();
-        assertTrue(config.getRetryableExceptions().contains(RuntimeException.class));
+        assertTrue(config.getSkippableExceptions().isEmpty());
+        assertTrue(config.getRetryableExceptions().isEmpty());
     }
 
     @Test
@@ -76,8 +66,8 @@ class BatchJobConfigTest {
             .build();
 
         assertEquals(300, config.getChunkSize());
-        assertEquals(10, config.getSkipLimit()); // Default
-        assertEquals(3, config.getRetryLimit()); // Default
+        assertEquals(0, config.getSkipLimit());   // defaults to 0
+        assertEquals(0, config.getRetryLimit());  // defaults to 0
     }
 
     @Test
@@ -132,11 +122,15 @@ class BatchJobConfigTest {
             .chunkSize(50)
             .skipLimit(100)
             .retryLimit(10)
+            .skippableExceptions(List.of(RuntimeException.class))
+            .retryableExceptions(List.of(RuntimeException.class))
             .build();
 
         assertEquals(50, config.getChunkSize());
         assertEquals(100, config.getSkipLimit());
         assertEquals(10, config.getRetryLimit());
+        assertTrue(config.getSkippableExceptions().contains(RuntimeException.class));
+        assertTrue(config.getRetryableExceptions().contains(RuntimeException.class));
     }
 
     /**

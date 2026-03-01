@@ -1,3 +1,7 @@
 dev.gmky.utils.GmkyAutoConfiguration
 dev.gmky.utils.batch.config.BatchAutoConfiguration
 dev.gmky.utils.csv.config.CsvAutoConfiguration
+dev.gmky.utils.logging.http.config.HttpLoggingAutoConfiguration
+dev.gmky.utils.logging.http.config.InboundHttpLoggingAutoConfiguration
+dev.gmky.utils.logging.http.config.RestTemplateLoggingAutoConfiguration
+dev.gmky.utils.logging.http.config.WebClientLoggingAutoConfiguration

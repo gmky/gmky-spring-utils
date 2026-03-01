@@ -16,12 +16,14 @@ import dev.gmky.utils.csv.validator.CsvRowValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -108,7 +110,14 @@ public class OpenCsvStreamingReader<T> implements dev.gmky.utils.csv.reader.CsvR
                     log.warn("Row {} mapping failed: {}", currentLine, e.getMessage());
                     return null;
                 }
-            }).filter(t -> t != null);
+            }).filter(Objects::nonNull)
+              .onClose(() -> {
+                  try {
+                      csvReader.close();
+                  } catch (IOException ignored) {
+                      log.debug("Failed to close CSVReader in stream onClose handler");
+                  }
+              });
         } catch (Exception e) {
             throw new CsvParsingException(0, "", "Failed to open/read CSV stream", e);
         }

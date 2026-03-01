@@ -79,7 +79,56 @@ Static access to Spring Beans.
 - `getBean(Class<T> clazz)`: Retrieve bean by class.
 - `getProperty(String key)`: Retrieve environment property.
 
-### 5. Mappers (`dev.gmky.utils.mapper`)
+### 5. HTTP Logging (`dev.gmky.utils.logging.http`)
+
+Structured, configurable request/response logging for inbound servlet traffic and outbound HTTP clients. Disabled by default — enable via `gmky.logging.http.enabled=true`.
+
+#### Components
+
+- **`InboundHttpLoggingFilter`**: `OncePerRequestFilter` that logs inbound requests and responses. When `include-body=true`, the request body is eagerly buffered and replayed via a `CachedBodyHttpServletRequest` wrapper so downstream controllers still receive it. Response body is captured via `ContentCachingResponseWrapper`.
+- **`OutboundRestTemplateInterceptor`**: `ClientHttpRequestInterceptor` for `RestTemplate`. Auto-wraps `RestTemplate` instances with `BufferingClientHttpRequestFactory` so the response body is readable for logging.
+- **`OutboundWebClientFilter`**: `ExchangeFilterFunction` for `WebClient`. Response body logging is intentionally omitted to avoid blocking the reactive pipeline; register the filter manually via `WebClient.Builder.filter(outboundWebClientFilter)`.
+
+#### Configuration
+
+```yaml
+gmky:
+  logging:
+    http:
+      enabled: true
+      inbound:
+        enabled: true
+        include-headers: true
+        include-body: false          # true buffers the full request body
+        max-body-size: 4096          # bytes before truncation
+        exclude-paths:
+          - /actuator/**
+        exclude-headers:             # redacted as [REDACTED]
+          - Authorization
+          - Cookie
+        log-level: DEBUG             # TRACE | DEBUG | INFO | WARN | ERROR
+      outbound:
+        enabled: true
+        include-headers: true
+        include-body: false
+        max-body-size: 4096
+        exclude-headers:
+          - Authorization
+        log-level: DEBUG
+```
+
+Log output format:
+```
+>>> INBOUND  [POST /api/users]
+  Headers:
+    Content-Type: application/json
+    Authorization: [REDACTED]
+  Request Body: {"name":"Alice"}
+
+<<< INBOUND  [POST /api/users] -> 201 (45ms)
+```
+
+### 6. Mappers (`dev.gmky.utils.mapper`)
 
 #### `EntityMapper<D, E>`
 
@@ -89,7 +138,7 @@ Base MapStruct interface for Entity-DTO conversion.
 - `toEntity(D dto)`
 - `partialUpdate(D dto, E entity)`
 
-### 6. Spring Batch Utilities (`dev.gmky.utils.batch`)
+### 7. Spring Batch Utilities (`dev.gmky.utils.batch`)
 
 Extensible framework for building robust batch jobs with minimal boilerplate.
 
@@ -130,7 +179,7 @@ public Job userMigrationJob(BatchJobFactory factory, UserRepository repo) {
 }
 ```
 
-### 7. CSV Utilities (`dev.gmky.utils.csv`)
+### 8. CSV Utilities (`dev.gmky.utils.csv`)
 
 High-performance, annotation-driven CSV-to-DTO mapping powered by OpenCSV.
 

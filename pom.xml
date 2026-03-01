@@ -95,6 +95,17 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring WebFlux core (for WebClient outbound logging filter).
+             We use spring-webflux directly (NOT the starter) to avoid pulling
+             in spring-boot-autoconfigure webflux classes whose availability
+             cannot be guaranteed across Spring Boot versions. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
