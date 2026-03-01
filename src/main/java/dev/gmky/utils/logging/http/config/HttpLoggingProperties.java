@@ -2,6 +2,7 @@ package dev.gmky.utils.logging.http.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
@@ -40,8 +41,16 @@ import java.util.List;
  * @since 1.0.4
  */
 @Data
+@Validated
 @ConfigurationProperties(prefix = "gmky.logging.http")
 public class HttpLoggingProperties {
+
+    /**
+     * SLF4J log levels available for HTTP logging configuration.
+     */
+    public enum LogLevel {
+        TRACE, DEBUG, INFO, WARN, ERROR
+    }
 
     /**
      * Master switch for HTTP logging. Defaults to {@code false}.
@@ -88,8 +97,8 @@ public class HttpLoggingProperties {
          */
         private List<String> excludeHeaders = List.of("Authorization", "Cookie", "Set-Cookie");
 
-        /** SLF4J log level for inbound logs: TRACE, DEBUG, INFO, WARN, ERROR. Defaults to DEBUG. */
-        private String logLevel = "DEBUG";
+        /** SLF4J log level for inbound logs. Defaults to DEBUG. */
+        private LogLevel logLevel = LogLevel.DEBUG;
     }
 
     /**
@@ -115,7 +124,7 @@ public class HttpLoggingProperties {
          */
         private List<String> excludeHeaders = List.of("Authorization", "Cookie");
 
-        /** SLF4J log level for outbound logs: TRACE, DEBUG, INFO, WARN, ERROR. Defaults to DEBUG. */
-        private String logLevel = "DEBUG";
+        /** SLF4J log level for outbound logs. Defaults to DEBUG. */
+        private LogLevel logLevel = LogLevel.DEBUG;
     }
 }

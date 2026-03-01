@@ -94,8 +94,8 @@ class HttpLoggingAutoConfigurationTest {
                     HttpLoggingProperties props = ctx.getBean(HttpLoggingProperties.class);
                     assertThat(props.getInbound().isIncludeBody()).isTrue();
                     assertThat(props.getInbound().getMaxBodySize()).isEqualTo(1024);
-                    assertThat(props.getInbound().getLogLevel()).isEqualTo("INFO");
-                    assertThat(props.getOutbound().getLogLevel()).isEqualTo("WARN");
+                    assertThat(props.getInbound().getLogLevel()).isEqualTo(HttpLoggingProperties.LogLevel.INFO);
+                    assertThat(props.getOutbound().getLogLevel()).isEqualTo(HttpLoggingProperties.LogLevel.WARN);
                 });
     }
 

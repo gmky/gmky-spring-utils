@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,38 +23,38 @@ public class BatchJobConfig {
      * Number of items to process in each chunk.
      */
     @Builder.Default
-    private Integer chunkSize = 100;
+    private int chunkSize = 100;
 
     /**
      * Maximum number of items to skip on errors.
+     * Set to 0 to disable skipping (default).
      */
     @Builder.Default
-    private Integer skipLimit = 10;
+    private int skipLimit = 0;
 
     /**
      * Maximum number of retry attempts for failed items.
+     * Set to 0 to disable retries (default).
      */
     @Builder.Default
-    private Integer retryLimit = 3;
+    private int retryLimit = 0;
 
     /**
      * Exceptions that should cause items to be skipped.
+     * Empty by default — callers must explicitly add exception types to enable skip behavior.
      */
     @Builder.Default
-    private List<Class<? extends Exception>> skippableExceptions = new ArrayList<>(
-            Collections.singletonList(RuntimeException.class)
-    );
+    private List<Class<? extends Exception>> skippableExceptions = new ArrayList<>();
 
     /**
      * Exceptions that should trigger retry attempts.
+     * Empty by default — callers must explicitly add exception types to enable retry behavior.
      */
     @Builder.Default
-    private List<Class<? extends Exception>> retryableExceptions = new ArrayList<>(
-            Collections.singletonList(RuntimeException.class)
-    );
+    private List<Class<? extends Exception>> retryableExceptions = new ArrayList<>();
 
     /**
-     * Create a configuration with default values.
+     * Create a configuration with default values (no skip, no retry).
      *
      * @return a new BatchJobConfig with defaults
      */
@@ -64,7 +63,7 @@ public class BatchJobConfig {
     }
 
     /**
-     * Create a simple configuration with just chunk size.
+     * Create a simple configuration with just chunk size (no skip, no retry).
      *
      * @param chunkSize the chunk size
      * @return a new BatchJobConfig
@@ -72,8 +71,6 @@ public class BatchJobConfig {
     public static BatchJobConfig simple(int chunkSize) {
         return BatchJobConfig.builder()
             .chunkSize(chunkSize)
-            .skipLimit(0) // No skipping by default
-            .retryLimit(0) // No retries by default
             .build();
     }
 }

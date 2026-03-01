@@ -1,5 +1,6 @@
 package dev.gmky.utils.logging.http.util;
 
+import dev.gmky.utils.logging.http.config.HttpLoggingProperties.LogLevel;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,9 +127,11 @@ class HttpLoggingHelperTest {
 
     @Test
     void logAtLevel_allLevels_shouldNotThrow() {
-        for (String level : java.util.Arrays.asList("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "UNKNOWN", null)) {
+        for (LogLevel level : LogLevel.values()) {
             HttpLoggingHelper.logAtLevel(LOG, level, "Test log at level {}", level);
         }
+        // null should default to DEBUG
+        HttpLoggingHelper.logAtLevel(LOG, null, "Test log at level null");
     }
 
     // ---- New tests for missing branch coverage ----

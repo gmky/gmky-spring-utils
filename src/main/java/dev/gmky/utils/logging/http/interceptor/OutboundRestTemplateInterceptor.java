@@ -35,7 +35,7 @@ public class OutboundRestTemplateInterceptor implements ClientHttpRequestInterce
     public ClientHttpResponse intercept(HttpRequest request, byte[] body,
                                         ClientHttpRequestExecution execution) throws IOException {
         HttpLoggingProperties.OutboundConfig cfg = properties.getOutbound();
-        String level = cfg.getLogLevel();
+        HttpLoggingProperties.LogLevel level = cfg.getLogLevel();
         String uri = request.getURI().toString();
 
         // --- Log request ---

@@ -35,7 +35,7 @@ public class OutboundWebClientFilter implements ExchangeFilterFunction {
     @Override
     public Mono<ClientResponse> filter(ClientRequest request, ExchangeFunction next) {
         HttpLoggingProperties.OutboundConfig cfg = properties.getOutbound();
-        String level = cfg.getLogLevel();
+        HttpLoggingProperties.LogLevel level = cfg.getLogLevel();
         String uri = request.url().toString();
 
         // Log request
@@ -70,7 +70,7 @@ public class OutboundWebClientFilter implements ExchangeFilterFunction {
                 })
                 .doOnError(err -> {
                     long elapsed = System.currentTimeMillis() - start;
-                    HttpLoggingHelper.logAtLevel(log, "WARN",
+                    HttpLoggingHelper.logAtLevel(log, HttpLoggingProperties.LogLevel.WARN,
                             "<<< OUTBOUND (WebClient) [{} {}] -> ERROR after {}ms: {}",
                             request.method(), uri, elapsed, err.getMessage());
                 });

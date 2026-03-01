@@ -120,7 +120,7 @@ class OutboundWebClientFilterTest {
 
     @Test
     void filter_withLogLevelTrace_shouldNotThrow() {
-        properties.getOutbound().setLogLevel("TRACE");
+        properties.getOutbound().setLogLevel(dev.gmky.utils.logging.http.config.HttpLoggingProperties.LogLevel.TRACE);
         ClientRequest request = buildRequest("DELETE", "https://api.example.com/resource/1");
         ClientResponse response = buildResponse(HttpStatus.NO_CONTENT);
         ExchangeFunction exchange = mock(ExchangeFunction.class);
@@ -133,7 +133,7 @@ class OutboundWebClientFilterTest {
 
     @Test
     void filter_withLogLevelInfo_shouldNotThrow() {
-        properties.getOutbound().setLogLevel("INFO");
+        properties.getOutbound().setLogLevel(dev.gmky.utils.logging.http.config.HttpLoggingProperties.LogLevel.INFO);
         ClientRequest request = buildRequest("PUT", "https://api.example.com/resource/1");
         ClientResponse response = buildResponse(HttpStatus.OK);
         ExchangeFunction exchange = mock(ExchangeFunction.class);
@@ -146,7 +146,7 @@ class OutboundWebClientFilterTest {
 
     @Test
     void filter_withLogLevelWarn_shouldNotThrow() {
-        properties.getOutbound().setLogLevel("WARN");
+        properties.getOutbound().setLogLevel(dev.gmky.utils.logging.http.config.HttpLoggingProperties.LogLevel.WARN);
         ClientRequest request = buildRequest("PATCH", "https://api.example.com/resource/1");
         ClientResponse response = buildResponse(HttpStatus.OK);
         ExchangeFunction exchange = mock(ExchangeFunction.class);

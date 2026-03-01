@@ -1,5 +1,6 @@
 package dev.gmky.utils;
 
+import dev.gmky.utils.common.AppContextUtil;
 import dev.gmky.utils.execution.aop.ExecutionTimeAspect;
 import dev.gmky.utils.execution.aop.ExecutionTimeAspectImpl;
 import dev.gmky.utils.logging.aop.LogPrefixAspect;
@@ -11,27 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 /**
  * Main auto-configuration class for GMKY Spring Utils library.
  * <p>
- * This configuration class enables automatic component scanning for all utility
- * classes and configurations provided by the GMKY Spring Utils library. When this
- * library is included as a dependency in a Spring Boot application, this configuration
- * will be automatically loaded through Spring Boot's auto-configuration mechanism.
- * </p>
- * <p>
- * The following components are automatically registered:
- * <ul>
- *   <li>Execution time monitoring aspect ({@code ExecutionTimeAspectImpl})</li>
- *   <li>Application startup logging ({@code AppReadyLoggingImpl})</li>
- *   <li>Common utility classes ({@code AppContextUtil}, {@code DateUtil}, {@code RequestUtil}, {@code ResponseUtil})</li>
- *   <li>Entity mapper interface ({@code EntityMapper})</li>
- * </ul>
+ * Registers all core utility beans explicitly. No component scanning is used —
+ * this follows Spring Boot library best practices to avoid interfering with
+ * consumer application component scan configurations.
  * </p>
  *
  * @author HiepVH
@@ -39,32 +28,38 @@ import org.springframework.core.env.Environment;
  * @since 1.0.0
  */
 @Slf4j
-@Configuration
 @AutoConfiguration
 @RequiredArgsConstructor
-@ComponentScan(basePackages = "dev.gmky.utils")
 @PropertySource("classpath:application.properties")
 public class GmkyAutoConfiguration {
+
     private final Environment env;
 
     @Bean
     @ConditionalOnMissingBean(AppReadyLogging.class)
     public AppReadyLogging appReadyLogging() {
-        log.info("Initializing AppReadyLogging...");
+        log.debug("Initializing AppReadyLogging...");
         return new AppReadyLoggingImpl(env);
     }
 
     @Bean
     @ConditionalOnMissingBean(ExecutionTimeAspect.class)
     public ExecutionTimeAspectImpl executionTimeAspect() {
-        log.info("Initializing ExecutionTimeAspect...");
+        log.debug("Initializing ExecutionTimeAspect...");
         return new ExecutionTimeAspectImpl();
     }
 
     @Bean
     @ConditionalOnMissingBean(LogPrefixAspect.class)
     public LogPrefixAspectImpl logPrefixAspect() {
-        log.info("Initializing LogPrefixAspect...");
+        log.debug("Initializing LogPrefixAspect...");
         return new LogPrefixAspectImpl();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(AppContextUtil.class)
+    public AppContextUtil appContextUtil() {
+        log.debug("Initializing AppContextUtil...");
+        return new AppContextUtil();
     }
 }

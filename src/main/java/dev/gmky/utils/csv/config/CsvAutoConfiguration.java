@@ -34,14 +34,40 @@ public class CsvAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public TypeConverterRegistry csvTypeConverterRegistry() {
-        log.info("Initializing CsvTypeConverterRegistry with built-in converters...");
+        log.debug("Initializing CsvTypeConverterRegistry with built-in converters...");
         TypeConverterRegistry registry = new TypeConverterRegistry();
         registry.register(new StringConverter());
-        registry.register(new NumberConverter());
         registry.register(new BooleanConverter());
-        registry.register(new TemporalConverter());
-        registry.register(new EnumConverter());
         registry.register(new BigDecimalConverter());
+        registry.register(new EnumConverter()); // registered under Enum.class for fallback
+
+        // Register NumberConverter under each concrete numeric type for O(1) lookup
+        NumberConverter numberConverter = new NumberConverter();
+        registry.register(Integer.class, numberConverter);
+        registry.register(int.class, numberConverter);
+        registry.register(Long.class, numberConverter);
+        registry.register(long.class, numberConverter);
+        registry.register(Double.class, numberConverter);
+        registry.register(double.class, numberConverter);
+        registry.register(Float.class, numberConverter);
+        registry.register(float.class, numberConverter);
+        registry.register(Short.class, numberConverter);
+        registry.register(short.class, numberConverter);
+        registry.register(Byte.class, numberConverter);
+        registry.register(byte.class, numberConverter);
+
+        // Register TemporalConverter under each concrete temporal type
+        TemporalConverter temporalConverter = new TemporalConverter();
+        registry.register(java.time.LocalDate.class, temporalConverter);
+        registry.register(java.time.LocalDateTime.class, temporalConverter);
+        registry.register(java.time.LocalTime.class, temporalConverter);
+        registry.register(java.time.ZonedDateTime.class, temporalConverter);
+        registry.register(java.time.Instant.class, temporalConverter);
+
+        // Also register Boolean under primitive boolean
+        BooleanConverter boolConverter = new BooleanConverter();
+        registry.register(boolean.class, boolConverter);
+
         return registry;
     }
 
@@ -56,7 +82,7 @@ public class CsvAutoConfiguration {
             name = "jakarta.validation.executable.ExecutableValidator"
     )
     public CsvRowValidator<?> csvRowValidator() {
-        log.info("Initializing JakartaValidationCsvRowValidator...");
+        log.debug("Initializing JakartaValidationCsvRowValidator...");
         return new JakartaValidationCsvRowValidator<>();
     }
 }

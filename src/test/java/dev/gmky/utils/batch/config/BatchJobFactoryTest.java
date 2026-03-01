@@ -282,6 +282,7 @@ class BatchJobFactoryTest {
         BatchJobConfig config = BatchJobConfig.builder()
             .chunkSize(100)
             .skipLimit(1000)
+            .skippableExceptions(java.util.List.of(RuntimeException.class))
             .build();
 
         Job job = factory.createSimpleJob(

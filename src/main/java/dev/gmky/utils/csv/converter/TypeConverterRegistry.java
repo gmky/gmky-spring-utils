@@ -29,6 +29,37 @@ public class TypeConverterRegistry {
     }
 
     /**
+     * Registers a converter under an explicit target type, regardless of what
+     * {@link TypeConverter#getTargetType()} returns. Use this to register
+     * multi-type converters (e.g. {@code NumberConverter}) under each concrete type.
+     *
+     * @param type      the target type key
+     * @param converter the converter to register
+     */
+    public void register(Class<?> type, TypeConverter<?> converter) {
+        converters.put(type, converter);
+    }
+
+    /**
+     * Finds a converter for the given type using a three-step fallback:
+     * <ol>
+     *   <li>Exact match in registry</li>
+     *   <li>If {@code type.isEnum()}, returns the registered {@code Enum.class} converter</li>
+     *   <li>Returns {@code null} if no converter is found</li>
+     * </ol>
+     *
+     * @param type the target type to find a converter for
+     * @return the converter, or {@code null}
+     */
+    @SuppressWarnings("unchecked")
+    public <T> TypeConverter<T> findConverter(Class<T> type) {
+        TypeConverter<T> converter = (TypeConverter<T>) converters.get(type);
+        if (converter != null) return converter;
+        if (type.isEnum()) return (TypeConverter<T>) converters.get(Enum.class);
+        return null;
+    }
+
+    /**
      * Retrieves the converter for the given target type, or {@code null} if not found.
      *
      * @param targetType the Java type to convert to

@@ -10,7 +10,6 @@ import dev.gmky.utils.csv.exception.CsvMappingException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +34,11 @@ public class AnnotationCsvRowMapper<T> implements CsvRowMapper<T> {
 
     private static final ConcurrentHashMap<Class<?>, List<CsvFieldMeta>> METADATA_CACHE =
             new ConcurrentHashMap<>();
+
+    // Singleton converter instances — declared before DEFAULT_REGISTRY to ensure correct init order
+    private static final TemporalConverter TEMPORAL_CONVERTER = new TemporalConverter();
+    private static final EnumConverter ENUM_CONVERTER = new EnumConverter();
+    private static final NumberConverter NUMBER_CONVERTER = new NumberConverter();
 
     private static final TypeConverterRegistry DEFAULT_REGISTRY = buildDefaultRegistry();
 
@@ -128,44 +132,16 @@ public class AnnotationCsvRowMapper<T> implements CsvRowMapper<T> {
 
         Class<?> type = meta.getFieldType();
 
-        // 2. String shortcut
+        // 2. String shortcut — no registry lookup needed
         if (type == String.class) {
             return value;
         }
 
-        // 3. BigDecimal (must be before generic Number check since BigDecimal extends Number)
-        if (type == BigDecimal.class) {
-            return new BigDecimalConverter().convert(value, meta);
-        }
-
-        // 4. Temporal types (multi-type converter)
-        if (TemporalConverter.supports(type)) {
-            return new TemporalConverter().convert(value, meta);
-        }
-
-        // 5. Enum types
-        if (type.isEnum()) {
-            return new EnumConverter().convert(value, meta);
-        }
-
-        // 6. Primitive numeric and boxed Integer/Long/Double/Float/Short/Byte
-        if (type == Integer.class || type == int.class
-                || type == Long.class || type == long.class
-                || type == Double.class || type == double.class
-                || type == Float.class || type == float.class
-                || type == Short.class || type == short.class
-                || type == Byte.class || type == byte.class) {
-            return new NumberConverter().convert(value, meta);
-        }
-
-        // 7. Boolean
-        if (type == Boolean.class || type == boolean.class) {
-            return new BooleanConverter().convert(value, meta);
-        }
-
-        // 8. Registry lookup for custom types
-        if (registry.hasConverter(type)) {
-            return registry.convert(value, (Class<Object>) type, meta);
+        // 3. Registry lookup (covers all built-in types registered in CsvAutoConfiguration
+        //    or in buildDefaultRegistry(), including numeric, temporal, enum, boolean, BigDecimal)
+        TypeConverter<?> converter = registry.findConverter(type);
+        if (converter != null) {
+            return converter.convert(value, meta);
         }
 
         throw new IllegalStateException("No converter found for type: " + type.getName());
@@ -198,8 +174,35 @@ public class AnnotationCsvRowMapper<T> implements CsvRowMapper<T> {
     private static TypeConverterRegistry buildDefaultRegistry() {
         TypeConverterRegistry reg = new TypeConverterRegistry();
         reg.register(new StringConverter());
-        reg.register(new BooleanConverter());
         reg.register(new BigDecimalConverter());
+        reg.register(ENUM_CONVERTER); // registered under Enum.class for isEnum() fallback
+
+        // Register Boolean under both boxed and primitive
+        BooleanConverter boolConverter = new BooleanConverter();
+        reg.register(boolConverter);
+        reg.register(boolean.class, boolConverter);
+
+        // Register NumberConverter under each concrete numeric type
+        reg.register(Integer.class, NUMBER_CONVERTER);
+        reg.register(int.class, NUMBER_CONVERTER);
+        reg.register(Long.class, NUMBER_CONVERTER);
+        reg.register(long.class, NUMBER_CONVERTER);
+        reg.register(Double.class, NUMBER_CONVERTER);
+        reg.register(double.class, NUMBER_CONVERTER);
+        reg.register(Float.class, NUMBER_CONVERTER);
+        reg.register(float.class, NUMBER_CONVERTER);
+        reg.register(Short.class, NUMBER_CONVERTER);
+        reg.register(short.class, NUMBER_CONVERTER);
+        reg.register(Byte.class, NUMBER_CONVERTER);
+        reg.register(byte.class, NUMBER_CONVERTER);
+
+        // Register TemporalConverter under each concrete temporal type
+        reg.register(java.time.LocalDate.class, TEMPORAL_CONVERTER);
+        reg.register(java.time.LocalDateTime.class, TEMPORAL_CONVERTER);
+        reg.register(java.time.LocalTime.class, TEMPORAL_CONVERTER);
+        reg.register(java.time.ZonedDateTime.class, TEMPORAL_CONVERTER);
+        reg.register(java.time.Instant.class, TEMPORAL_CONVERTER);
+
         return reg;
     }
 }

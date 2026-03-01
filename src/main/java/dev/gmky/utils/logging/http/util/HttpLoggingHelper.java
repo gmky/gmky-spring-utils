@@ -1,10 +1,12 @@
 package dev.gmky.utils.logging.http.util;
 
+import dev.gmky.utils.logging.http.config.HttpLoggingProperties.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.AntPathMatcher;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,18 +65,18 @@ public final class HttpLoggingHelper {
     }
 
     /**
-     * Truncates a body string to {@code maxSize} bytes. Returns {@code null}
+     * Truncates a body string to {@code maxSize} bytes (UTF-8). Returns {@code null}
      * if the input is blank.
      *
      * @param body    the raw body string
-     * @param maxSize maximum byte length to retain
+     * @param maxSize maximum byte length (UTF-8) to retain
      * @return truncated body or {@code null} if blank
      */
     public static String truncateBody(String body, int maxSize) {
         if (StringUtils.isBlank(body)) return null;
-        byte[] bytes = body.getBytes();
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         if (bytes.length <= maxSize) return body;
-        return new String(bytes, 0, maxSize) + TRUNCATED_SUFFIX;
+        return new String(bytes, 0, maxSize, StandardCharsets.UTF_8) + TRUNCATED_SUFFIX;
     }
 
     /**
@@ -120,21 +122,21 @@ public final class HttpLoggingHelper {
      * Dispatches a log message at the configured SLF4J level.
      *
      * @param logger  the SLF4J logger instance
-     * @param level   one of TRACE, DEBUG, INFO, WARN, ERROR (case-insensitive)
+     * @param level   the log level enum value (null defaults to DEBUG)
      * @param message the message format string
      * @param args    the message arguments
      */
-    public static void logAtLevel(Logger logger, String level, String message, Object... args) {
+    public static void logAtLevel(Logger logger, LogLevel level, String message, Object... args) {
         if (level == null) {
             logger.debug(message, args);
             return;
         }
-        switch (level.toUpperCase()) {
-            case "TRACE" -> logger.trace(message, args);
-            case "INFO"  -> logger.info(message, args);
-            case "WARN"  -> logger.warn(message, args);
-            case "ERROR" -> logger.error(message, args);
-            default      -> logger.debug(message, args);
+        switch (level) {
+            case TRACE -> logger.trace(message, args);
+            case INFO  -> logger.info(message, args);
+            case WARN  -> logger.warn(message, args);
+            case ERROR -> logger.error(message, args);
+            default    -> logger.debug(message, args);
         }
     }
 }

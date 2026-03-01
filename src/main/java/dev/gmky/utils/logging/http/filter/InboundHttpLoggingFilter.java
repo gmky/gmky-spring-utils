@@ -110,7 +110,7 @@ public class InboundHttpLoggingFilter extends OncePerRequestFilter {
     private void logRequest(HttpServletRequest request, String fullUri,
                             byte[] bodyBytes,
                             HttpLoggingProperties.InboundConfig cfg) {
-        String level = cfg.getLogLevel();
+        HttpLoggingProperties.LogLevel level = cfg.getLogLevel();
         StringBuilder sb = new StringBuilder();
         sb.append("\n>>> INBOUND  [").append(request.getMethod()).append(" ").append(fullUri).append("]");
 
@@ -139,7 +139,7 @@ public class InboundHttpLoggingFilter extends OncePerRequestFilter {
                              String fullUri,
                              long elapsed,
                              HttpLoggingProperties.InboundConfig cfg) {
-        String level = cfg.getLogLevel();
+        HttpLoggingProperties.LogLevel level = cfg.getLogLevel();
         StringBuilder sb = new StringBuilder();
         sb.append("\n<<< INBOUND  [")
                 .append(request.getMethod()).append(" ").append(fullUri)

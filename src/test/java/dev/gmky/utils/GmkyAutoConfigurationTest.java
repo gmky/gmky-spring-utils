@@ -1,5 +1,6 @@
 package dev.gmky.utils;
 
+import dev.gmky.utils.common.AppContextUtil;
 import dev.gmky.utils.execution.aop.ExecutionTimeAspect;
 import dev.gmky.utils.execution.aop.ExecutionTimeAspectImpl;
 import dev.gmky.utils.logging.aop.LogPrefixAspect;
@@ -25,6 +26,7 @@ class GmkyAutoConfigurationTest {
             assertThat(context).hasSingleBean(AppReadyLogging.class);
             assertThat(context).hasSingleBean(ExecutionTimeAspect.class);
             assertThat(context).hasSingleBean(LogPrefixAspect.class);
+            assertThat(context).hasSingleBean(AppContextUtil.class);
         });
     }
 
